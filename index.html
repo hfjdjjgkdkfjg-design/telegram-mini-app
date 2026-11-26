@@ -79,9 +79,7 @@
         <h1>Welcome</h1>
         <p>Press the button below to continue.</p>
 
-        <button id="continueBtn">
-            Continue
-        </button>
+        <button id="continueBtn">Continue</button>
 
         <div id="status"></div>
     </div>
@@ -93,22 +91,30 @@
             Telegram.WebApp.expand();
         }
 
-        // TEST DESTINATION
+        // TEST DESTINATION — keep this for now
         const destination = "https://example.com";
 
         const button = document.getElementById("continueBtn");
         const status = document.getElementById("status");
 
-        button.addEventListener("click", async function () {
-            if (button.disabled) return;
+        // Prevent multiple clicks
+        let processing = false;
 
+        button.addEventListener("click", async function () {
+            if (processing) return;
+
+            processing = true;
             button.disabled = true;
-            status.textContent = "Loading ad...";
+            status.textContent = "Opening...";
 
             try {
-                // Check that Monetag SDK loaded
+                // Check Monetag SDK
                 if (typeof window.show_12360838 !== "function") {
-                    throw new Error("Monetag SDK failed to load.");
+                    throw new Error("Monetag SDK is not loaded.");
                 }
 
-                // Show
+                // Open Monetag Rewarded Popup
+                await window.show_12360838({ type: "pop" });
+
+            } catch (error) {
+                console.error("Monetag error:", error);
