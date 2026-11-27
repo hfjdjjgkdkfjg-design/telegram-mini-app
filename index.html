@@ -8,8 +8,8 @@
     <!-- Telegram Mini App SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
-    <!-- Monetag SDK -->
-    <script src="https://libtl.com/sdk.js" data-zone="12360838" data-sdk="show_12360838"></script>
+    <!-- Tads Ads SDK -->
+    <script src="https://w.tads.me/widget.js"></script>
 
     <style>
         * {
@@ -75,55 +75,80 @@
 
 <body>
 
-    <div class="container">
-        <h1>Welcome</h1>
-        <p>Press the button below to continue.</p>
+<div class="container">
+    <h1>Welcome</h1>
+    <p>Press the button below to continue.</p>
 
-        <button id="continueBtn">Continue</button>
+    <button id="continueBtn">Continue</button>
 
-        <div id="status"></div>
-    </div>
+    <div id="status"></div>
+</div>
 
-    <script>
-        // Initialize Telegram Mini App
-        if (window.Telegram && window.Telegram.WebApp) {
-            Telegram.WebApp.ready();
-            Telegram.WebApp.expand();
-        }
+<script>
+    // Initialize Telegram Mini App
+    if (window.Telegram && window.Telegram.WebApp) {
+        Telegram.WebApp.ready();
+        Telegram.WebApp.expand();
+    }
 
-        // TEST DESTINATION — keep this for now
-        const destination = "https://example.com";
+    // Destination link
+    const destination = "https://example.com";
 
-        const button = document.getElementById("continueBtn");
-        const status = document.getElementById("status");
+    const button = document.getElementById("continueBtn");
+    const status = document.getElementById("status");
 
-        // Prevent multiple clicks
-        let processing = false;
+    let processing = false;
 
-        button.addEventListener("click", async function () {
+    // Tads configuration
+    const WIDGET_ID = 13545; // REPLACE with your actual Widget ID
+    const IS_DEBUG = false;
+    const BUTTON_ID = "continueBtn";
+
+    // Reward callback
+    const onShowRewardCallback = (adId) => {
+        console.log("Ad watched, reward the user:", adId);
+    };
+
+    // No ads available callback
+    const onAdsNotFound = () => {
+        console.log("No ads available right now.");
+    };
+
+    document.addEventListener("DOMContentLoaded", function () {
+
+        // Initialize Tads
+        const adController = window.tads.init({
+            widgetId: WIDGET_ID,
+            type: "fullscreen",
+            debug: IS_DEBUG,
+            onShowReward: onShowRewardCallback,
+            onAdsNotFound: onAdsNotFound
+        });
+
+        // Continue button
+        document.getElementById(BUTTON_ID).addEventListener("click", async () => {
+
             if (processing) return;
 
             processing = true;
             button.disabled = true;
-            status.textContent = "Opening...";
+            status.textContent = "Loading...";
 
             try {
-                // Check Monetag SDK
-                if (typeof window.show_12360838 !== "function") {
-                    throw new Error("Monetag SDK is not loaded.");
-                }
+                // Show Tads fullscreen ad
+                await adController.showAd();
 
-                // Open Monetag Rewarded Popup
-                await window.show_12360838({ type: "pop" });
+                status.textContent = "Continuing...";
 
             } catch (error) {
-                console.error("Monetag error:", error);
+                console.log("Tads ad error:", error);
             }
 
-            // Continue even if the ad fails
+            // Continue even if the ad fails or is unavailable
             window.location.href = destination;
         });
-    </script>
+    });
+</script>
 
 </body>
 </html>
