@@ -8,7 +8,7 @@
     <!-- Telegram Mini App SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
-    <!-- Tads Ads SDK -->
+    <!-- Tads Ad SDK -->
     <script src="https://w.tads.me/widget.js"></script>
 
     <style>
@@ -19,136 +19,155 @@
         body {
             margin: 0;
             min-height: 100vh;
+            background: #121212;
+            color: white;
+            font-family: Arial, sans-serif;
             display: flex;
             align-items: center;
             justify-content: center;
-            background: #111827;
-            color: white;
-            font-family: Arial, sans-serif;
             padding: 20px;
         }
 
-        .container {
+        .card {
             width: 100%;
-            max-width: 380px;
+            max-width: 400px;
+            background: #1e1e1e;
+            padding: 30px 22px;
+            border-radius: 18px;
             text-align: center;
-            padding: 35px 25px;
-            background: #1f2937;
-            border-radius: 20px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
         }
 
         h1 {
+            margin-top: 0;
             font-size: 28px;
-            margin-bottom: 12px;
         }
 
         p {
-            color: #cbd5e1;
+            color: #bdbdbd;
+            font-size: 15px;
             line-height: 1.6;
-            margin-bottom: 25px;
         }
 
+        /* Banner ad container */
+        #tads-container-13545 {
+            width: 100%;
+            margin: 20px auto;
+        }
+
+        /* Continue button */
         button {
             width: 100%;
-            padding: 16px;
+            padding: 15px;
+            margin-top: 15px;
             border: none;
             border-radius: 12px;
-            background: #3390ec;
+            background: #2ea6ff;
             color: white;
-            font-size: 18px;
+            font-size: 17px;
             font-weight: bold;
             cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        button:hover {
+            opacity: 0.85;
         }
 
         button:disabled {
-            opacity: 0.7;
+            opacity: 0.6;
             cursor: wait;
         }
 
         #status {
             margin-top: 15px;
             font-size: 13px;
-            color: #9ca3af;
+            color: #888;
         }
     </style>
 </head>
 
 <body>
 
-<div class="container">
-    <h1>Welcome</h1>
-    <p>Press the button below to continue.</p>
+    <div class="card">
 
-    <button id="continueBtn">Continue</button>
+        <h1>Welcome</h1>
 
-    <div id="status"></div>
-</div>
+        <p>
+            Welcome! Press Continue below to proceed.
+        </p>
 
-<script>
-    // Initialize Telegram Mini App
-    if (window.Telegram && window.Telegram.WebApp) {
-        Telegram.WebApp.ready();
-        Telegram.WebApp.expand();
-    }
+        <!-- TADS BANNER AD -->
+        <div id="tads-container-13545"></div>
 
-    // Destination link
-    const destination = "https://example.com";
+        <!-- CONTINUE BUTTON -->
+        <button id="continueBtn">Continue</button>
 
-    const button = document.getElementById("continueBtn");
-    const status = document.getElementById("status");
+        <div id="status"></div>
 
-    let processing = false;
+    </div>
 
-    // Tads configuration
-    const WIDGET_ID = 13545; // REPLACE with your actual Widget ID
-    const IS_DEBUG = false;
-    const BUTTON_ID = "continueBtn";
+    <script>
+        // Initialize Telegram Mini App
+        if (window.Telegram && window.Telegram.WebApp) {
+            Telegram.WebApp.ready();
+            Telegram.WebApp.expand();
+        }
 
-    // Reward callback
-    const onShowRewardCallback = (adId) => {
-        console.log("Ad watched, reward the user:", adId);
-    };
+        // TADS CONFIGURATION
+        const WIDGET_ID = "13545";
 
-    // No ads available callback
-    const onAdsNotFound = () => {
-        console.log("No ads available right now.");
-    };
+        // Destination after the ad
+        const destination = "https://example.com";
 
-    document.addEventListener("DOMContentLoaded", function () {
+        let adController = null;
 
-        // Initialize Tads
-        const adController = window.tads.init({
-            widgetId: WIDGET_ID,
-            type: "fullscreen",
-            debug: IS_DEBUG,
-            onShowReward: onShowRewardCallback,
-            onAdsNotFound: onAdsNotFound
-        });
+        // Initialize TADS fullscreen ad
+        document.addEventListener("DOMContentLoaded", function () {
 
-        // Continue button
-        document.getElementById(BUTTON_ID).addEventListener("click", async () => {
-
-            if (processing) return;
-
-            processing = true;
-            button.disabled = true;
-            status.textContent = "Loading...";
+            const status = document.getElementById("status");
+            const button = document.getElementById("continueBtn");
 
             try {
-                // Show Tads fullscreen ad
-                await adController.showAd();
+                if (window.tads) {
+                    adController = window.tads.init({
+                        id: WIDGET_ID,
+                        type: "fullscreen",
+                        debug: false,
 
-                status.textContent = "Continuing...";
+                        onAdsNotFound: function () {
+                            console.log("No fullscreen ads available.");
+                        }
+                    });
 
+                    console.log("Tads initialized.");
+                } else {
+                    console.error("Tads SDK failed to load.");
+                }
             } catch (error) {
-                console.log("Tads ad error:", error);
+                console.error("Tads initialization error:", error);
             }
 
-            // Continue even if the ad fails or is unavailable
-            window.location.href = destination;
+            // Continue button triggers fullscreen ad
+            button.addEventListener("click", async function () {
+
+                button.disabled = true;
+                status.textContent = "Loading...";
+
+                try {
+                    if (adController) {
+                        await adController.showAd();
+                    }
+                } catch (error) {
+                    console.log("Ad unavailable:", error);
+                }
+
+                // Continue to destination even if ad fails
+                window.location.href = destination;
+            });
+
         });
-    });
-</script>
+    </script>
 
 </body>
 </html>
